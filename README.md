@@ -31,7 +31,7 @@ de conexión se guarda con User Secrets para evitar publicar contraseñas:
 
 ```powershell
 dotnet user-secrets init --project src/BancoSol.Finance.Api
-dotnet user-secrets set "ConnectionStrings:FinanceDatabase" "Host=localhost;Port=5432;Database=bancosol_finance;Username=postgres;Password=TU_PASSWORD" --project src/BancoSol.Finance.Api
+dotnet user-secrets set "ConnectionStrings:FinanceDatabase" "Host=localhost;Port=5432;Database=bancosol_finance;Username=postgres;Password=PASSWORD" --project src/BancoSol.Finance.Api
 ```
 
 ```bash
@@ -57,6 +57,44 @@ docker compose up --build
 
 Docker Compose inicia la API y PostgreSQL. Swagger queda disponible en
 `http://localhost:8080/swagger`; el volumen `postgres-data` conserva la base.
+
+
+## Despliegue público
+
+La API está desplegada en un VPS Linux detrás de un proxy inverso con HTTPS.
+
+- Documentación interactiva: [https://bancsol-api.servernux.com/swagger/](https://bancsol-api.servernux.com/swagger/)
+- Documentación alternativa: [https://bancsol-api.servernux.com/api-docs/](https://bancsol-api.servernux.com/api-docs/)
+- Health check: [https://bancsol-api.servernux.com/health](https://bancsol-api.servernux.com/health)
+
+El artefacto de producción se genera mediante `dotnet publish`. La aplicación
+se ejecuta como un servicio `systemd` y se reinicia automáticamente ante fallos.
+Un proxy inverso administra el dominio público y la terminación HTTPS.
+
+Las cadenas de conexión y demás valores sensibles se administran mediante
+variables de entorno protegidas en el VPS. Ningún secreto se almacena en el
+repositorio.
+
+
+## Integración y despliegue continuos
+
+Jenkins ejecuta automáticamente el pipeline cuando GitHub notifica cambios en
+la rama `main` mediante un webhook.
+
+El proceso realiza:
+
+1. Restauración de dependencias.
+2. Compilación en configuración `Release`.
+3. Ejecución de pruebas unitarias.
+4. Ejecución de pruebas de integración contra PostgreSQL.
+5. Generación del artefacto mediante `dotnet publish`.
+6. Actualización del servicio `systemd`.
+7. Verificación del endpoint `/health`.
+
+Las pruebas de integración utilizan la base independiente
+`bancosol_finance_tests`. La cadena de conexión se obtiene desde Jenkins
+Credentials y nunca se ejecutan pruebas automatizadas contra la base productiva.
+
 
 ## Endpoints
 
@@ -113,7 +151,7 @@ dotnet test BancoSol.Finance.slnx -c Release
 Las pruebas de integración usan una base PostgreSQL separada. Antes de ejecutarlas:
 
 ```powershell
-$env:ConnectionStrings__FinanceTestDatabase = "Host=localhost;Port=5432;Database=bancosol_finance_tests;Username=postgres;Password=TU_PASSWORD"
+$env:ConnectionStrings__FinanceTestDatabase = "Host=localhost;Port=5432;Database=bancosol_finance_tests;Username=postgres;Password=PASSWORD"
 ```
 
 Se cubren los criterios críticos:
@@ -127,11 +165,9 @@ Se cubren los criterios críticos:
 - respuesta HTTP `404` con mensaje para un GUID no registrado;
 - respuesta HTTP `400` para un identificador mal formado.
 
+<img width="1330" height="437" alt="image" src="https://github.com/user-attachments/assets/36ab6c21-d4d5-40a7-978e-ad9034ab3ef2" />
+
 ## Decisiones y supuestos
-
-### Ambigüedad matemática del enunciado
-
-El caso completo del PDF calcula correctamente `3000 BOB + 100 USD + 2000 BOB = 5692 BOB` con tasa `6.92`. Sin embargo, la sección de pruebas omite los `2000 BOB` y conserva el resultado `5692`. La operación correcta para `3000 BOB + 100 USD` es `3692 BOB`. La prueba automatizada conserva los tres ingresos del ejemplo completo y espera `5692`; la lógica no introduce una excepción para reproducir el error tipográfico.
 
 ### Tipo de cambio
 
@@ -160,16 +196,3 @@ La prueba habla de “mis ingresos”, pero no define autenticación ni clientes
 
 Para producción se recomienda TLS en el proxy/hosting, autenticación OIDC, autorización por recurso, rate limiting, almacenamiento administrado (PostgreSQL/RDS), migraciones controladas y telemetría centralizada.
 
-## CI/CD y despliegue
-
-`.github/workflows/ci.yml` restaura, compila con advertencias tratadas como errores, ejecuta las pruebas con cobertura y construye la imagen Docker en cada push/PR.
-
-Para Render, Railway, Azure o AWS se puede desplegar directamente el `Dockerfile`, exponer el puerto `8080` y configurar una instancia PostgreSQL administrada. Configuración mínima:
-
-```text
-ASPNETCORE_ENVIRONMENT=Production
-ConnectionStrings__FinanceDatabase=Host=SERVIDOR;Port=5432;Database=bancosol_finance;Username=USUARIO;Password=SECRETO
-HexaRate__BaseUrl=https://hexarate.paikama.co/
-```
-
-La documentación se habilita deliberadamente en todos los entornos porque el enunciado exige acceso público a `/swagger`.
