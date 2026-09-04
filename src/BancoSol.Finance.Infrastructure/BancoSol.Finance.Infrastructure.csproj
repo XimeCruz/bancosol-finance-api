@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+    <ProjectReference Include="../BancoSol.Finance.Application/BancoSol.Finance.Application.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
+  </ItemGroup>
+</Project>

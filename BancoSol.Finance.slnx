@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BancoSol.Finance.Api/BancoSol.Finance.Api.csproj" />
+    <Project Path="src/BancoSol.Finance.Application/BancoSol.Finance.Application.csproj" />
+    <Project Path="src/BancoSol.Finance.Domain/BancoSol.Finance.Domain.csproj" />
+    <Project Path="src/BancoSol.Finance.Infrastructure/BancoSol.Finance.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BancoSol.Finance.UnitTests/BancoSol.Finance.UnitTests.csproj" />
+    <Project Path="tests/BancoSol.Finance.IntegrationTests/BancoSol.Finance.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,40 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.db
+data/
+TestResults/
+coverage/
+
+# Build
+**/bin/
+**/obj/
+publish/
+TestResults/
+coverage/
+
+# Databases
+*.db
+*.db-shm
+*.db-wal
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+secrets.json
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Operating system
+.DS_Store
+Thumbs.db
+
