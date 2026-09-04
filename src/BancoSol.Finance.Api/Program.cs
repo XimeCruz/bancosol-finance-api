@@ -3,6 +3,7 @@ using BancoSol.Finance.Application.Balances;
 using BancoSol.Finance.Application.Incomes;
 using BancoSol.Finance.Infrastructure;
 using BancoSol.Finance.Infrastructure.Persistence;
+using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +17,18 @@ builder.Services.AddSingleton<BalanceCalculator>();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddHealthChecks().AddDbContextCheck<FinanceDbContext>();
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.MapOpenApi();
 app.MapScalarApiReference("/swagger", options => options.WithTitle("BancoSol Finance API"));
 app.MapScalarApiReference("/api-docs", options => options.WithTitle("BancoSol Finance API"));
