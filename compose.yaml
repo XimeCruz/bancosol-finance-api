@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: bancosol_finance
+      POSTGRES_USER: bancosol
+      POSTGRES_PASSWORD: bancosol_dev
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bancosol -d bancosol_finance"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    ports: ["8080:8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__FinanceDatabase: Host=postgres;Port=5432;Database=bancosol_finance;Username=bancosol;Password=bancosol_dev
+volumes:
+  postgres-data:
