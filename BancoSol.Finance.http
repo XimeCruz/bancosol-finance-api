@@ -1,0 +1,43 @@
+@host = http://localhost:5080
+
+### Crear ingreso BOB
+POST {{host}}/api/v1/incomes
+Content-Type: application/json
+
+{
+  "amount": 5000,
+  "description": "Sueldo diciembre",
+  "receivedDate": "2025-12-01",
+  "source": "Sueldo",
+  "currency": "BOB"
+}
+
+### Historial
+GET {{host}}/api/v1/incomes
+
+### Consultar ingreso existente (reemplazar el GUID)
+GET {{host}}/api/v1/incomes/82ab4f7c-32cd-4e3a-9f49-f73701ce7230
+
+### GUID válido no registrado: debe responder 404 con mensaje
+GET {{host}}/api/v1/incomes/00000000-0000-0000-0000-000000000001
+
+### Identificador mal formado: debe responder 400
+GET {{host}}/api/v1/incomes/id-invalido
+
+### Tipo de cambio
+GET {{host}}/api/v1/exchange-rates/USD/BOB
+
+### Balance consolidado
+GET {{host}}/api/v1/balances?from=2025-12-01&to=2025-12-31&currency=BOB
+
+### Moneda inválida: debe responder 400
+POST {{host}}/api/v1/incomes
+Content-Type: application/json
+
+{
+  "amount": 100,
+  "description": "Ingreso en euros",
+  "receivedDate": "2025-12-01",
+  "source": "Venta",
+  "currency": "EUR"
+}
